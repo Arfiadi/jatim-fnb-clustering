@@ -373,19 +373,48 @@ def plot_east_java_map_interactive(
             
     df_map = pd.DataFrame(map_data)
     
-    fig = px.scatter_mapbox(
-        df_map,
-        lat="lat",
-        lon="lon",
-        color="Segmen Klaster",
-        hover_name="Kabupaten/Kota",
-        hover_data={"Segmen Klaster": True, "lat": False, "lon": False},
-        zoom=7.3,
-        center={"lat": -7.7, "lon": 112.7},
-        mapbox_style="carto-positron",
-        title="🗺️ Peta Persebaran Geospasial Segmen Pengeluaran di Jawa Timur",
-        template="plotly_white"
-    )
+    # Adaptively support modern Plotly (>=6.0: scatter_map) and legacy Plotly (scatter_mapbox)
+    if hasattr(px, "scatter_map"):
+        fig = px.scatter_map(
+            df_map,
+            lat="lat",
+            lon="lon",
+            color="Segmen Klaster",
+            hover_name="Kabupaten/Kota",
+            hover_data={"Segmen Klaster": True, "lat": False, "lon": False},
+            zoom=7.3,
+            center={"lat": -7.7, "lon": 112.7},
+            map_style="open-street-map",
+            title="🗺️ Peta Persebaran Geospasial Segmen Pengeluaran di Jawa Timur",
+            template="plotly_white"
+        )
+    elif hasattr(px, "scatter_mapbox"):
+        fig = px.scatter_mapbox(
+            df_map,
+            lat="lat",
+            lon="lon",
+            color="Segmen Klaster",
+            hover_name="Kabupaten/Kota",
+            hover_data={"Segmen Klaster": True, "lat": False, "lon": False},
+            zoom=7.3,
+            center={"lat": -7.7, "lon": 112.7},
+            mapbox_style="open-street-map",
+            title="🗺️ Peta Persebaran Geospasial Segmen Pengeluaran di Jawa Timur",
+            template="plotly_white"
+        )
+    else:
+        fig = px.scatter(
+            df_map,
+            x="lon",
+            y="lat",
+            color="Segmen Klaster",
+            hover_name="Kabupaten/Kota",
+            title="🗺️ Peta Persebaran Geospasial Segmen Pengeluaran di Jawa Timur",
+            labels={"lon": "Bujur (Longitude)", "lat": "Lintang (Latitude)"},
+            template="plotly_white"
+        )
+
     fig.update_traces(marker=dict(size=14, opacity=0.88))
     fig.update_layout(margin={"r": 0, "t": 40, "l": 0, "b": 0}, height=550)
     return fig
+

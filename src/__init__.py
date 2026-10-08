@@ -18,6 +18,19 @@ from .clustering import (
     get_gap_analysis,
     get_business_recommendations,
 )
+from . import visualization
+from .visualization import (
+    plot_dendrogram,
+    plot_silhouette_sample_analysis,
+    plot_boxplot_distribution,
+    plot_linkage_comparison_interactive,
+    plot_pca_2d_interactive,
+    plot_cluster_distribution_interactive,
+    plot_cluster_profile_heatmap_interactive,
+    plot_top_features_interactive,
+    plot_gap_analysis_interactive,
+    plot_east_java_map_interactive,
+)
 
 __all__ = [
     "load_raw_data",
@@ -34,4 +47,15 @@ __all__ = [
     "get_cluster_profiles",
     "get_gap_analysis",
     "get_business_recommendations",
+    "visualization",
+    "plot_dendrogram",
+    "plot_silhouette_sample_analysis",
+    "plot_boxplot_distribution",
+    "plot_linkage_comparison_interactive",
+    "plot_pca_2d_interactive",
+    "plot_cluster_distribution_interactive",
+    "plot_cluster_profile_heatmap_interactive",
+    "plot_top_features_interactive",
+    "plot_gap_analysis_interactive",
+    "plot_east_java_map_interactive",
 ]
