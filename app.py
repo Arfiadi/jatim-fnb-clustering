@@ -276,7 +276,7 @@ with tab_intro:
         cluster_col="Nama_Klaster",
         total_spending_col="Total_Pengeluaran"
     )
-    st.plotly_chart(fig_map_preview, use_container_width=True)
+    st.plotly_chart(fig_map_preview, use_container_width=True, key="preview_map_chart")
 
 # ----------------------------------------------------
 # TAB 2: EKSPLORASI & PREPROCESSING
@@ -361,7 +361,7 @@ with tab_clustering:
                 chosen_method=linkage_method, 
                 chosen_k=n_clusters
             )
-            st.plotly_chart(fig_linkage, use_container_width=True)
+            st.plotly_chart(fig_linkage, use_container_width=True, key="linkage_curve_chart")
         with col_comp2:
             st.markdown("##### Tabel Evaluasi Komparatif")
             st.dataframe(summary_df, use_container_width=True)
@@ -392,7 +392,7 @@ with tab_clustering:
         col_dist, col_pca = st.columns([1, 2])
         with col_dist:
             fig_bar = plot_cluster_distribution_interactive(df_result, cluster_col="Nama_Klaster")
-            st.plotly_chart(fig_bar, use_container_width=True)
+            st.plotly_chart(fig_bar, use_container_width=True, key="cluster_dist_chart")
         with col_pca:
             fig_pca = plot_pca_2d_interactive(
                 df_scaled, 
@@ -401,7 +401,7 @@ with tab_clustering:
                 cluster_names_map,
                 df_raw_features=df_features
             )
-            st.plotly_chart(fig_pca, use_container_width=True)
+            st.plotly_chart(fig_pca, use_container_width=True, key="pca_scatter_chart")
 
         st.markdown("---")
         st.markdown("##### 🏛️ Rincian Kabupaten / Kota Anggota di Setiap Klaster")
@@ -421,7 +421,7 @@ with tab_clustering:
             cluster_col="Nama_Klaster",
             total_spending_col="Total_Pengeluaran"
         )
-        st.plotly_chart(fig_map, use_container_width=True)
+        st.plotly_chart(fig_map, use_container_width=True, key="east_java_map_chart")
 
 # ----------------------------------------------------
 # TAB 4: PROFIL & REKOMENDASI BISNIS
@@ -473,16 +473,16 @@ with tab_business:
         st.markdown("Tabel berikut memeringkat komoditas dengan rasio kesenjangan pengeluaran terbesar antara klaster konsumsi tertinggi dan terendah:")
         
         fig_gap = plot_gap_analysis_interactive(gap_analysis_df, top_n=10)
-        st.plotly_chart(fig_gap, use_container_width=True)
+        st.plotly_chart(fig_gap, use_container_width=True, key="gap_analysis_chart")
         st.dataframe(gap_analysis_df, use_container_width=True)
 
     with biz_sub3:
         st.subheader("🔥 Profil Median Komparatif Antar Segmen")
         fig_top = plot_top_features_interactive(median_profile_named, top_n=10)
-        st.plotly_chart(fig_top, use_container_width=True)
+        st.plotly_chart(fig_top, use_container_width=True, key="top_commodities_chart")
         
         fig_heat = plot_cluster_profile_heatmap_interactive(median_profile_named)
-        st.plotly_chart(fig_heat, use_container_width=True)
+        st.plotly_chart(fig_heat, use_container_width=True, key="heatmap_profile_chart")
 
     with biz_sub4:
         st.subheader("📦 Distribusi Pengeluaran Fitur Pilihan (Boxplot)")
