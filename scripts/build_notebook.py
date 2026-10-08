@@ -141,6 +141,14 @@ def generate_notebook():
             "fig_dist = plot_cluster_distribution_interactive(df_result, cluster_col='Nama_Klaster')\n"
             "fig_dist.show()"
         ),
+        nbf.v4.new_code_cell(
+            "# Rincian Anggota Kabupaten / Kota di Setiap Klaster\n"
+            "for cl in sorted(df_result['Nama_Klaster'].unique()):\n"
+            "    members = df_result[df_result['Nama_Klaster'] == cl]['Kabupaten/Kota'].tolist()\n"
+            "    print(f'📌 {cl} ({len(members)} Wilayah):')\n"
+            "    print('   ' + ', '.join(members))\n"
+            "    print()"
+        ),
         nbf.v4.new_markdown_cell(
             "### 5.2 Peta Persebaran Spasial Jawa Timur"
         ),

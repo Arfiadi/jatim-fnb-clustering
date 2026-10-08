@@ -403,6 +403,16 @@ with tab_clustering:
             )
             st.plotly_chart(fig_pca, use_container_width=True)
 
+        st.markdown("---")
+        st.markdown("##### 🏛️ Rincian Kabupaten / Kota Anggota di Setiap Klaster")
+        cols_members = st.columns(min(n_clusters, 4))
+        for idx, cl_name in enumerate(sorted(df_result["Nama_Klaster"].unique())):
+            members = df_result[df_result["Nama_Klaster"] == cl_name]["Kabupaten/Kota"].tolist()
+            with cols_members[idx % len(cols_members)]:
+                with st.expander(f"📍 {cl_name} ({len(members)} Wilayah)", expanded=True):
+                    for m in members:
+                        st.markdown(f"- **{m}**")
+
     with clust_sub3:
         st.subheader("3. Peta Geospasial 38 Kabupaten/Kota di Jawa Timur")
         fig_map = plot_east_java_map_interactive(
@@ -429,6 +439,7 @@ with tab_business:
         recs_data = get_business_recommendations()
         
         for cluster_id in sorted(df_result["Nama_Klaster"].unique()):
+            members_list = df_result[df_result["Nama_Klaster"] == cluster_id]["Kabupaten/Kota"].tolist()
             # Find matching recommendation key
             rec_entry = None
             for key, val in recs_data.items():
@@ -440,6 +451,7 @@ with tab_business:
                 st.markdown(f"""
                 <div class="recommendation-card">
                     <h4 style="color:#1e3a8a; margin-bottom:8px;">{cluster_id}</h4>
+                    <p><b>🏛️ Wilayah Anggota ({len(members_list)} Kab/Kota):</b> {', '.join(members_list)}</p>
                     <p><b>Karakteristik Wilayah (Who):</b> {rec_entry['who'] if rec_entry else 'Wilayah pada klaster ini memiliki karakteristik pola pengeluaran serupa.'}</p>
                     <p><b>Pola Pengeluaran Utama (What):</b> {rec_entry['what'] if rec_entry else 'Dominasi belanja pada kategori makanan pokok siap konsumsi.'}</p>
                     <p><b>Implikasi Bisnis (So What):</b> {rec_entry['so_what'] if rec_entry else 'Peluang penetrasi produk sesuai daya beli segmen.'}</p>
