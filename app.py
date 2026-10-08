@@ -187,7 +187,7 @@ gap_analysis_df = src.get_gap_analysis(median_profile_named)
 # HEADER & EXECUTIVE METRICS
 # ==========================================
 st.markdown('<div class="main-title">🍜 Segmentasi Pengeluaran Makanan & Minuman Jawa Timur</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">Hierarchical Clustering 38 Kabupaten/Kota Berdasarkan Pola Konsumsi Rumah Tangga — Perspektif FMCG & Consumer Analytics</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">Hierarchical Clustering 38 Kabupaten/Kota Berdasarkan Pola Pengeluaran Makanan & Minuman Jadi — Perspektif FMCG & Consumer Analytics</div>', unsafe_allow_html=True)
 
 # KPI row
 col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
