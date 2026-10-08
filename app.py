@@ -32,41 +32,18 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling
+# Custom Styling (Theme Adaptive for Light & Dark Mode)
 st.markdown("""
 <style>
     .main-title {
         font-size: 2.1rem;
         font-weight: 700;
-        color: #1e3a8a;
         margin-bottom: 0.2rem;
     }
     .sub-title {
         font-size: 1.05rem;
-        color: #4b5563;
+        opacity: 0.85;
         margin-bottom: 1.2rem;
-    }
-    .metric-card {
-        background-color: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 12px 16px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .section-callout {
-        background-color: #eff6ff;
-        border-left: 4px solid #2563eb;
-        padding: 12px 16px;
-        border-radius: 4px;
-        margin-bottom: 16px;
-    }
-    .recommendation-card {
-        background-color: #ffffff;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 14px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -244,7 +221,7 @@ tab_intro, tab_eda, tab_clustering, tab_business, tab_export = st.tabs([
 # TAB 1: RINGKASAN & KONTEKS INDUSTRI
 # ----------------------------------------------------
 with tab_intro:
-    st.markdown('<div class="section-callout"><b>Executive Summary:</b> Segmentasi ini memetakan heterogenitas belanja konsumsi makanan dan minuman jadi di 38 Kabupaten/Kota Provinsi Jawa Timur. Hasil klasterisasi memberikan dasar penetapan strategi distribusi regional, optimasi bauran produk (product portfolio), dan pricing berkeadilan.</div>', unsafe_allow_html=True)
+    st.info("💡 **Executive Summary:** Segmentasi ini memetakan heterogenitas belanja konsumsi makanan dan minuman jadi di 38 Kabupaten/Kota Provinsi Jawa Timur. Hasil klasterisasi memberikan dasar penetapan strategi distribusi regional, optimasi bauran produk (product portfolio), dan pricing berkeadilan.")
     
     col_intro1, col_intro2 = st.columns([3, 2])
     with col_intro1:
@@ -323,10 +300,13 @@ with tab_eda:
         Pengujian menggunakan batas interkuartil $[Q1 - 1.5 \\times IQR, Q3 + 1.5 \\times IQR]$ mendeteksi **{outlier_info['total_features_with_outliers']} fitur** yang memiliki nilai ekstrem.
         """)
         
-        st.markdown("""<div class="section-callout">
-        <b>Justifikasi Ilmiah Penanganan Outlier (Data Sensus Wilayah):</b><br>
-        Karena data ini mencakup 100% populasi Kabupaten/Kota di Jawa Timur (bukan sampel acak survei), nilai pencilan tinggi di wilayah seperti <b>Kota Surabaya</b> dan <b>Kota Malang</b> merefleksikan realitas sosio-ekonomi perkotaan metropolitan. Memangkas (trimming/winsorizing) outlier akan menghilangkan kemampuan model untuk mendeteksi segmen <i>High-Spend Urban</i>. Oleh karena itu, seluruh observasi dipertahankan secara utuh.
-        </div>""", unsafe_allow_html=True)
+        st.info(
+            "💡 **Justifikasi Ilmiah Penanganan Outlier (Data Sensus Wilayah):**\n\n"
+            "Karena data ini mencakup 100% populasi Kabupaten/Kota di Jawa Timur (bukan sampel acak survei), "
+            "nilai pencilan tinggi di wilayah seperti **Kota Surabaya** dan **Kota Malang** merefleksikan realitas "
+            "sosio-ekonomi perkotaan metropolitan. Memangkas (trimming/winsorizing) outlier akan menghilangkan kemampuan "
+            "model untuk mendeteksi segmen *High-Spend Urban*. Oleh karena itu, seluruh observasi dipertahankan secara utuh."
+        )
         
         st.dataframe(outlier_info["summary_table"], use_container_width=True)
 
@@ -447,26 +427,23 @@ with tab_business:
                     rec_entry = val
                     break
                     
-            with st.container():
-                st.markdown(f"""
-                <div class="recommendation-card">
-                    <h4 style="color:#1e3a8a; margin-bottom:8px;">{cluster_id}</h4>
-                    <p><b>🏛️ Wilayah Anggota ({len(members_list)} Kab/Kota):</b> {', '.join(members_list)}</p>
-                    <p><b>Karakteristik Wilayah (Who):</b> {rec_entry['who'] if rec_entry else 'Wilayah pada klaster ini memiliki karakteristik pola pengeluaran serupa.'}</p>
-                    <p><b>Pola Pengeluaran Utama (What):</b> {rec_entry['what'] if rec_entry else 'Dominasi belanja pada kategori makanan pokok siap konsumsi.'}</p>
-                    <p><b>Implikasi Bisnis (So What):</b> {rec_entry['so_what'] if rec_entry else 'Peluang penetrasi produk sesuai daya beli segmen.'}</p>
-                </div>
-                """, unsafe_allow_html=True)
+            with st.container(border=True):
+                st.subheader(cluster_id)
+                st.markdown(f"**🏛️ Wilayah Anggota ({len(members_list)} Kab/Kota):** {', '.join(members_list)}")
+                st.markdown(f"**Karakteristik Wilayah (Who):** {rec_entry['who'] if rec_entry else 'Wilayah pada klaster ini memiliki karakteristik pola pengeluaran serupa.'}")
+                st.markdown(f"**Pola Pengeluaran Utama (What):** {rec_entry['what'] if rec_entry else 'Dominasi belanja pada kategori makanan pokok siap konsumsi.'}")
+                st.markdown(f"**Implikasi Bisnis (So What):** {rec_entry['so_what'] if rec_entry else 'Peluang penetrasi produk sesuai daya beli segmen.'}")
                 
                 if rec_entry and "now_what" in rec_entry:
+                    st.divider()
+                    st.markdown("##### 🎯 Rekomendasi Aksi Konkret (Now What):")
                     c_fmcg, c_food, c_gov = st.columns(3)
                     with c_fmcg:
-                        st.markdown(f"**🛒 Strategi FMCG / Retail:**\n\n{rec_entry['now_what']['fmcg']}")
+                        st.info(f"**🛒 Strategi FMCG / Retail:**\n\n{rec_entry['now_what']['fmcg']}")
                     with c_food:
-                        st.markdown(f"**🍔 Food Delivery & QSR:**\n\n{rec_entry['now_what']['food_delivery']}")
+                        st.success(f"**🍔 Food Delivery & QSR:**\n\n{rec_entry['now_what']['food_delivery']}")
                     with c_gov:
-                        st.markdown(f"**🏛️ Kebijakan Pemprov / Dinkes:**\n\n{rec_entry['now_what']['pemprov']}")
-                st.markdown("---")
+                        st.warning(f"**🏛️ Kebijakan Pemprov / Dinkes:**\n\n{rec_entry['now_what']['pemprov']}")
 
     with biz_sub2:
         st.subheader("📊 Analisis Kesenjangan Konsumsi Antar Wilayah (Disparity Gap)")
