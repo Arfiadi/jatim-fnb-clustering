@@ -3,6 +3,7 @@ Visualization module providing both publication-quality static charts (Matplotli
 and rich interactive charts (Plotly).
 """
 
+import re
 from typing import Dict, List, Optional
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
@@ -70,8 +71,8 @@ def plot_dendrogram(
     color_threshold: Optional[float] = None,
     dark_mode: bool = True
 ) -> plt.Figure:
-    """Generate high-resolution hierarchical clustering dendrogram."""
-    fig, ax = plt.subplots(figsize=(12, 6), dpi=120)
+    """Generate high-resolution hierarchical clustering dendrogram with proportional dimensions."""
+    fig, ax = plt.subplots(figsize=(10, 5.5), dpi=120)
     bg_color = "#0e1117" if dark_mode else "#ffffff"
     text_color = "#f1f5f9" if dark_mode else "#1e293b"
     spine_color = "#334155" if dark_mode else "#cbd5e1"
@@ -86,13 +87,13 @@ def plot_dendrogram(
         ax=ax,
         labels=labels,
         leaf_rotation=90,
-        leaf_font_size=8,
+        leaf_font_size=7.5,
         color_threshold=color_threshold,
         above_threshold_color="#94a3b8" if dark_mode else "#7f8c8d"
     )
-    ax.set_title(f"Dendrogram Hierarchical Clustering (Metode: {method.capitalize()})", fontsize=12, fontweight="bold", color=text_color)
-    ax.set_xlabel("Kabupaten / Kota di Jawa Timur", fontsize=10, color=text_color)
-    ax.set_ylabel("Jarak Euklides / Varians Gabungan", fontsize=10, color=text_color)
+    ax.set_title(f"Dendrogram Hierarchical Clustering (Metode: {method.capitalize()})", fontsize=11, fontweight="bold", color=text_color, pad=10)
+    ax.set_xlabel("Kabupaten / Kota di Jawa Timur", fontsize=9, color=text_color)
+    ax.set_ylabel("Jarak Euklides / Varians Gabungan", fontsize=9, color=text_color)
     ax.tick_params(colors=text_color)
     for spine in ax.spines.values():
         spine.set_color(spine_color)
@@ -107,11 +108,11 @@ def plot_silhouette_sample_analysis(
     cluster_names_map: Optional[Dict[int, str]] = None,
     dark_mode: bool = True
 ) -> plt.Figure:
-    """Plot per-sample silhouette coefficients with cluster bands and average score line."""
+    """Plot per-sample silhouette coefficients with identical aspect ratio and sanitized text without missing glyphs."""
     sample_silhouette_values = silhouette_samples(X, labels)
     avg_score = float(silhouette_score(X, labels))
     
-    fig, ax = plt.subplots(figsize=(10, 6), dpi=120)
+    fig, ax = plt.subplots(figsize=(10, 5.5), dpi=120)
     bg_color = "#0e1117" if dark_mode else "#ffffff"
     text_color = "#f1f5f9" if dark_mode else "#1e293b"
     spine_color = "#334155" if dark_mode else "#cbd5e1"
@@ -130,7 +131,12 @@ def plot_silhouette_sample_analysis(
         y_upper = y_lower + size_cluster
         
         color = colors[i]
-        cl_name = cluster_names_map.get(cluster_idx, f"Klaster {cluster_idx}") if cluster_names_map else f"Klaster {cluster_idx}"
+        raw_name = cluster_names_map.get(cluster_idx, f"Klaster {cluster_idx}") if cluster_names_map else f"Klaster {cluster_idx}"
+        # Sanitize emojis for Matplotlib to prevent missing tofu glyphs [?]
+        clean_name = re.sub(r'[^\x00-\x7F]+', '', raw_name).strip()
+        if not clean_name:
+            clean_name = f"Klaster {cluster_idx}"
+            
         ax.fill_betweenx(
             np.arange(y_lower, y_upper),
             0,
@@ -138,22 +144,22 @@ def plot_silhouette_sample_analysis(
             facecolor=color,
             edgecolor=color,
             alpha=0.8,
-            label=f"K{cluster_idx}: {cl_name} (n={size_cluster})"
+            label=f"K{cluster_idx}: {clean_name} (n={size_cluster})"
         )
         
         ax.text(-0.06, y_lower + 0.4 * size_cluster, f"K{cluster_idx}", fontsize=9, fontweight="bold", color=text_color)
         y_lower = y_upper + 10
         
     ax.axvline(x=avg_score, color="#ef4444", linestyle="--", linewidth=1.8, label=f"Rata-rata: {avg_score:.3f}")
-    ax.set_title(f"Analisis Silhouette Per Sampel (K = {n_clusters})", fontsize=12, fontweight="bold", color=text_color)
-    ax.set_xlabel("Koefisien Silhouette", fontsize=10, color=text_color)
-    ax.set_ylabel("Klaster", fontsize=10, color=text_color)
+    ax.set_title(f"Analisis Silhouette Per Sampel (K = {n_clusters})", fontsize=11, fontweight="bold", color=text_color, pad=10)
+    ax.set_xlabel("Koefisien Silhouette", fontsize=9, color=text_color)
+    ax.set_ylabel("Klaster", fontsize=9, color=text_color)
     ax.set_yticks([])
     ax.set_xlim([-0.2, 1.0])
     ax.tick_params(colors=text_color)
     for spine in ax.spines.values():
         spine.set_color(spine_color)
-    ax.legend(loc="lower right", fontsize=8, facecolor=bg_color, edgecolor=spine_color, labelcolor=text_color)
+    ax.legend(loc="lower right", fontsize=7.5, facecolor=bg_color, edgecolor=spine_color, labelcolor=text_color)
     ax.grid(axis="x", linestyle=":", alpha=0.3, color="#94a3b8")
     plt.tight_layout()
     return fig
@@ -265,13 +271,12 @@ def plot_pca_2d_interactive(
             "PC1": f"PC 1 ({var_exp[0]*100:.1f}% Varians)",
             "PC2": f"PC 2 ({var_exp[1]*100:.1f}% Varians)",
             "Nama_Klaster": "Segmen Klaster"
-        },
-        template="plotly_white"
+        }
     )
     fig.update_traces(marker=dict(size=12, line=dict(width=1, color="DarkSlateGrey")))
     fig.update_layout(
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
-        margin=dict(t=70, b=40)
+        legend=dict(orientation="h", yanchor="top", y=-0.15, xanchor="center", x=0.5),
+        margin=dict(t=50, b=120)
     )
     return fig
 
