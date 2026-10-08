@@ -67,10 +67,18 @@ def plot_dendrogram(
     X: np.ndarray, 
     labels: List[str], 
     method: str = "ward", 
-    color_threshold: Optional[float] = None
+    color_threshold: Optional[float] = None,
+    dark_mode: bool = True
 ) -> plt.Figure:
     """Generate high-resolution hierarchical clustering dendrogram."""
     fig, ax = plt.subplots(figsize=(12, 6), dpi=120)
+    bg_color = "#0e1117" if dark_mode else "#ffffff"
+    text_color = "#f1f5f9" if dark_mode else "#1e293b"
+    spine_color = "#334155" if dark_mode else "#cbd5e1"
+    
+    fig.patch.set_facecolor(bg_color)
+    ax.set_facecolor(bg_color)
+    
     Z = linkage(X, method=method)
     
     dendrogram(
@@ -80,11 +88,14 @@ def plot_dendrogram(
         leaf_rotation=90,
         leaf_font_size=8,
         color_threshold=color_threshold,
-        above_threshold_color="#7f8c8d"
+        above_threshold_color="#94a3b8" if dark_mode else "#7f8c8d"
     )
-    ax.set_title(f"Dendrogram Hierarchical Clustering (Metode: {method.capitalize()})", fontsize=12, fontweight="bold")
-    ax.set_xlabel("Kabupaten / Kota di Jawa Timur", fontsize=10)
-    ax.set_ylabel("Jarak Euklides / Varians Gabungan", fontsize=10)
+    ax.set_title(f"Dendrogram Hierarchical Clustering (Metode: {method.capitalize()})", fontsize=12, fontweight="bold", color=text_color)
+    ax.set_xlabel("Kabupaten / Kota di Jawa Timur", fontsize=10, color=text_color)
+    ax.set_ylabel("Jarak Euklides / Varians Gabungan", fontsize=10, color=text_color)
+    ax.tick_params(colors=text_color)
+    for spine in ax.spines.values():
+        spine.set_color(spine_color)
     plt.tight_layout()
     return fig
 
@@ -93,17 +104,24 @@ def plot_silhouette_sample_analysis(
     X: np.ndarray, 
     labels: np.ndarray, 
     n_clusters: int,
-    cluster_names_map: Optional[Dict[int, str]] = None
+    cluster_names_map: Optional[Dict[int, str]] = None,
+    dark_mode: bool = True
 ) -> plt.Figure:
     """Plot per-sample silhouette coefficients with cluster bands and average score line."""
     sample_silhouette_values = silhouette_samples(X, labels)
     avg_score = float(silhouette_score(X, labels))
     
     fig, ax = plt.subplots(figsize=(10, 6), dpi=120)
-    y_lower = 10
+    bg_color = "#0e1117" if dark_mode else "#ffffff"
+    text_color = "#f1f5f9" if dark_mode else "#1e293b"
+    spine_color = "#334155" if dark_mode else "#cbd5e1"
     
+    fig.patch.set_facecolor(bg_color)
+    ax.set_facecolor(bg_color)
+    
+    y_lower = 10
     unique_labels = sorted(np.unique(labels))
-    colors = cm.nipy_spectral(np.linspace(0, 0.85, n_clusters))
+    colors = cm.nipy_spectral(np.linspace(0.1, 0.85, n_clusters))
     
     for i, cluster_idx in enumerate(unique_labels):
         ith_cluster_values = sample_silhouette_values[labels == cluster_idx]
@@ -112,27 +130,31 @@ def plot_silhouette_sample_analysis(
         y_upper = y_lower + size_cluster
         
         color = colors[i]
+        cl_name = cluster_names_map.get(cluster_idx, f"Klaster {cluster_idx}") if cluster_names_map else f"Klaster {cluster_idx}"
         ax.fill_betweenx(
             np.arange(y_lower, y_upper),
             0,
             ith_cluster_values,
             facecolor=color,
             edgecolor=color,
-            alpha=0.75,
-            label=cluster_names_map.get(cluster_idx, f"Klaster {cluster_idx}") if cluster_names_map else f"Klaster {cluster_idx}"
+            alpha=0.8,
+            label=f"K{cluster_idx}: {cl_name} (n={size_cluster})"
         )
         
-        ax.text(-0.06, y_lower + 0.5 * size_cluster, f"K{cluster_idx} (n={size_cluster})", fontsize=9, fontweight="bold")
+        ax.text(-0.06, y_lower + 0.4 * size_cluster, f"K{cluster_idx}", fontsize=9, fontweight="bold", color=text_color)
         y_lower = y_upper + 10
         
-    ax.axvline(x=avg_score, color="red", linestyle="--", linewidth=1.5, label=f"Rata-rata: {avg_score:.3f}")
-    ax.set_title(f"Analisis Silhouette Per Sampel (K = {n_clusters})", fontsize=12, fontweight="bold")
-    ax.set_xlabel("Koefisien Silhouette", fontsize=10)
-    ax.set_ylabel("Klaster", fontsize=10)
+    ax.axvline(x=avg_score, color="#ef4444", linestyle="--", linewidth=1.8, label=f"Rata-rata: {avg_score:.3f}")
+    ax.set_title(f"Analisis Silhouette Per Sampel (K = {n_clusters})", fontsize=12, fontweight="bold", color=text_color)
+    ax.set_xlabel("Koefisien Silhouette", fontsize=10, color=text_color)
+    ax.set_ylabel("Klaster", fontsize=10, color=text_color)
     ax.set_yticks([])
     ax.set_xlim([-0.2, 1.0])
-    ax.legend(loc="upper right", fontsize=8)
-    ax.grid(axis="x", linestyle=":", alpha=0.6)
+    ax.tick_params(colors=text_color)
+    for spine in ax.spines.values():
+        spine.set_color(spine_color)
+    ax.legend(loc="lower right", fontsize=8, facecolor=bg_color, edgecolor=spine_color, labelcolor=text_color)
+    ax.grid(axis="x", linestyle=":", alpha=0.3, color="#94a3b8")
     plt.tight_layout()
     return fig
 
@@ -238,7 +260,7 @@ def plot_pca_2d_interactive(
             "PC1": ":.2f",
             "PC2": ":.2f"
         },
-        title=f"Visualisasi 2D Klastering via PCA ({var_exp.sum()*100:.1f}% Total Varians Dijelaskan)",
+        title=f"Visualisasi 2D Klastering via PCA ({var_exp.sum()*100:.1f}% Varians)",
         labels={
             "PC1": f"PC 1 ({var_exp[0]*100:.1f}% Varians)",
             "PC2": f"PC 2 ({var_exp[1]*100:.1f}% Varians)",
@@ -247,7 +269,10 @@ def plot_pca_2d_interactive(
         template="plotly_white"
     )
     fig.update_traces(marker=dict(size=12, line=dict(width=1, color="DarkSlateGrey")))
-    fig.update_layout(legend=dict(orientation="h", y=-0.2))
+    fig.update_layout(
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+        margin=dict(t=70, b=40)
+    )
     return fig
 
 
@@ -255,23 +280,30 @@ def plot_cluster_distribution_interactive(
     df: pd.DataFrame, 
     cluster_col: str = "Nama_Klaster"
 ) -> go.Figure:
-    """Interactive bar chart displaying member distribution per cluster."""
+    """Interactive horizontal bar chart displaying member distribution per cluster."""
     counts = df[cluster_col].value_counts().reset_index()
     counts.columns = ["Segmen Klaster", "Jumlah Wilayah"]
     counts["Persentase (%)"] = (counts["Jumlah Wilayah"] / len(df) * 100).round(1)
+    counts = counts.sort_values(by="Jumlah Wilayah", ascending=True)
     
     fig = px.bar(
         counts,
-        x="Segmen Klaster",
-        y="Jumlah Wilayah",
+        y="Segmen Klaster",
+        x="Jumlah Wilayah",
         color="Segmen Klaster",
+        orientation="h",
         text="Jumlah Wilayah",
         hover_data={"Persentase (%)": True},
-        title="Distribusi Jumlah Kabupaten/Kota per Segmen Klaster",
+        title="Distribusi Jumlah Wilayah per Klaster",
         template="plotly_white"
     )
     fig.update_traces(textposition="outside")
-    fig.update_layout(showlegend=False, yaxis_title="Jumlah Kabupaten/Kota")
+    fig.update_layout(
+        showlegend=False, 
+        xaxis_title="Jumlah Kabupaten/Kota", 
+        yaxis_title="",
+        margin=dict(l=10, r=40, t=50, b=30)
+    )
     return fig
 
 
@@ -303,6 +335,19 @@ def plot_top_features_interactive(
     df_melt = df_subset.melt(id_vars=profile_df.index.name or "index", var_name="Komoditas", value_name="Median_Pengeluaran")
     cluster_var = profile_df.index.name or "index"
     
+    # Shorten long commodity names to prevent text overlapping with chart
+    short_names = {
+        "Mie bakso, mie rebus, mie goreng": "Mie bakso / goreng",
+        "Minuman jadi (kopi, kopi susu, teh, susu coklat, dsb)": "Minuman jadi (kopi/teh/susu)",
+        "Soto, gule, sop, rawon, cincang": "Soto / rawon / sop",
+        "Ayam/daging matang (ayam goreng, rendang, dsb)": "Ayam / daging matang",
+        "Makanan ringan anak-anak, krupuk/kripik": "Snack & krupuk / kripik",
+        "Kue basah (kue lapis, bika ambon, lemper, dsb)": "Kue basah (lapis/lemper)",
+        "Makanan gorengan (tahu, tempe, bakwan, pisang)": "Gorengan (tahu/tempe)",
+        "Daging olahan matang (sosis, nugget, daging asap, dsb)": "Daging olahan (sosis/nugget)",
+    }
+    df_melt["Komoditas"] = df_melt["Komoditas"].replace(short_names)
+
     fig = px.bar(
         df_melt,
         x="Komoditas",
@@ -310,13 +355,20 @@ def plot_top_features_interactive(
         color=cluster_var,
         barmode="group",
         title=f"Top {top_n} Komoditas Pengeluaran Tertinggi per Klaster",
-        labels={"Median_Pengeluaran": "Median Pengeluaran Mingguan (Rp)", "Komoditas": "Jenis Makanan/Minuman", cluster_var: "Segmen Klaster"},
+        labels={"Median_Pengeluaran": "Median Belanja Mingguan (Rp)", "Komoditas": "Komoditas", cluster_var: "Segmen Klaster"},
         template="plotly_white"
     )
     fig.update_layout(
         xaxis_tickangle=-30,
-        legend=dict(orientation="h", y=-0.35),
-        height=500
+        legend=dict(
+            orientation="h", 
+            yanchor="bottom", 
+            y=1.04, 
+            xanchor="center", 
+            x=0.5
+        ),
+        margin=dict(t=85, b=110),
+        height=540
     )
     return fig
 

@@ -355,7 +355,7 @@ with tab_clustering:
         col_dendro, col_sil_sample = st.columns(2)
         with col_dendro:
             st.markdown("##### Dendrogram Hierarki")
-            fig_d = plot_dendrogram(df_scaled.values, labels=regions.tolist(), method=linkage_method)
+            fig_d = plot_dendrogram(df_scaled.values, labels=regions.tolist(), method=linkage_method, dark_mode=True)
             st.pyplot(fig_d)
         with col_sil_sample:
             st.markdown(f"##### Silhouette Analysis Per Sampel (K={n_clusters})")
@@ -363,13 +363,14 @@ with tab_clustering:
                 df_scaled.values, 
                 cluster_labels, 
                 n_clusters, 
-                cluster_names_map=cluster_names_map
+                cluster_names_map=cluster_names_map,
+                dark_mode=True
             )
             st.pyplot(fig_s)
 
     with clust_sub2:
         st.subheader(f"2. Sebaran Klaster & Proyeksi PCA 2D (K={n_clusters})")
-        col_dist, col_pca = st.columns([1, 2])
+        col_dist, col_pca = st.columns([1, 1])
         with col_dist:
             fig_bar = plot_cluster_distribution_interactive(df_result, cluster_col="Nama_Klaster")
             st.plotly_chart(fig_bar, use_container_width=True, key="cluster_dist_chart")
@@ -439,11 +440,17 @@ with tab_business:
                     st.markdown("##### 🎯 Rekomendasi Aksi Konkret (Now What):")
                     c_fmcg, c_food, c_gov = st.columns(3)
                     with c_fmcg:
-                        st.info(f"**🛒 Strategi FMCG / Retail:**\n\n{rec_entry['now_what']['fmcg']}")
+                        with st.container(border=True):
+                            st.markdown("##### 🛒 FMCG / Retail")
+                            st.markdown(rec_entry['now_what']['fmcg'])
                     with c_food:
-                        st.success(f"**🍔 Food Delivery & QSR:**\n\n{rec_entry['now_what']['food_delivery']}")
+                        with st.container(border=True):
+                            st.markdown("##### 🍔 Food Delivery & QSR")
+                            st.markdown(rec_entry['now_what']['food_delivery'])
                     with c_gov:
-                        st.warning(f"**🏛️ Kebijakan Pemprov / Dinkes:**\n\n{rec_entry['now_what']['pemprov']}")
+                        with st.container(border=True):
+                            st.markdown("##### 🏛️ Kebijakan Pemprov / Dinkes")
+                            st.markdown(rec_entry['now_what']['pemprov'])
 
     with biz_sub2:
         st.subheader("📊 Analisis Kesenjangan Konsumsi Antar Wilayah (Disparity Gap)")
