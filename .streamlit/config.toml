@@ -1,0 +1,13 @@
+[client]
+showErrorDetails = true
+
+[server]
+enableCORS = false
+enableXsrfProtection = true
+
+[theme]
+base = "dark"
+primaryColor = "#3b82f6"
+backgroundColor = "#0e1117"
+secondaryBackgroundColor = "#1e222a"
+textColor = "#f1f5f9"

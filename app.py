@@ -3,7 +3,17 @@ Streamlit Application: Platform Analisis Klaster Pengeluaran Makanan & Minuman J
 Framed for FMCG & Consumer Analytics Insights.
 """
 
+import sys
+from pathlib import Path
 from typing import Dict, List
+
+# Ensure project root is in sys.path across all cloud environments
+ROOT_DIR = Path(__file__).resolve().parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

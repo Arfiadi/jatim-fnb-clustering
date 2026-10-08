@@ -5,6 +5,8 @@ and rich interactive charts (Plotly).
 
 import re
 from typing import Dict, List, Optional
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np

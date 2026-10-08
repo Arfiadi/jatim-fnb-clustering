@@ -8,6 +8,8 @@
 [![scikit--learn](https://img.shields.io/badge/scikit--learn-1.3%2B-orange.svg)](https://scikit-learn.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
+**🌐 Live Dashboard:** [https://jatim-fnb-clustering.streamlit.app/](https://jatim-fnb-clustering.streamlit.app/)
+
 ---
 
 ## 📌 Executive Summary & Problem Framing
