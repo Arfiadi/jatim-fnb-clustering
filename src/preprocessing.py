@@ -45,8 +45,8 @@ def analyze_dropped_feature(
     mean_all_variance = float(other_vars.mean())
     median_all_variance = float(other_vars.median())
     
-    # Correlation with other features
-    corrs = df_numeric.corrwith(clean_series).dropna()
+    # Correlation with other features (excluding itself)
+    corrs = df_numeric[other_cols].corrwith(clean_series).dropna()
     mean_corr = float(corrs.mean()) if len(corrs) > 0 else 0.0
     max_corr = float(corrs.max()) if len(corrs) > 0 else 0.0
     min_corr = float(corrs.min()) if len(corrs) > 0 else 0.0
