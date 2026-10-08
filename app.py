@@ -13,6 +13,7 @@ import src
 from src.clustering import assign_business_cluster_names, get_business_recommendations
 from src.visualization import (
     plot_boxplot_distribution,
+    plot_cluster_donut_interactive,
     plot_cluster_distribution_interactive,
     plot_cluster_profile_heatmap_interactive,
     plot_dendrogram,
@@ -368,12 +369,31 @@ with tab_clustering:
             )
             st.pyplot(fig_s)
 
+        with st.expander("🔍 Perbesar Tampilan Dendrogram (Full Width - 38 Wilayah)", expanded=False):
+            fig_d_wide = plot_dendrogram(df_scaled.values, labels=regions.tolist(), method=linkage_method, dark_mode=True)
+            st.pyplot(fig_d_wide)
+
     with clust_sub2:
         st.subheader(f"2. Sebaran Klaster & Proyeksi PCA 2D (K={n_clusters})")
-        col_dist, col_pca = st.columns([1, 1])
-        with col_dist:
-            fig_bar = plot_cluster_distribution_interactive(df_result, cluster_col="Nama_Klaster")
-            st.plotly_chart(fig_bar, use_container_width=True, key="cluster_dist_chart")
+        
+        # 1. Sleek KPI Metric Cards per Cluster
+        sorted_clusters = sorted(df_result["Nama_Klaster"].unique())
+        metric_cols = st.columns(len(sorted_clusters))
+        for idx, cl_name in enumerate(sorted_clusters):
+            subset = df_result[df_result["Nama_Klaster"] == cl_name]
+            count = len(subset)
+            pct = (count / len(df_result)) * 100
+            med_val = subset["Total_Pengeluaran"].median() if "Total_Pengeluaran" in subset.columns else 0
+            with metric_cols[idx]:
+                st.metric(
+                    label=cl_name,
+                    value=f"{count} Wilayah ({pct:.1f}%)",
+                    delta=f"Median: Rp {med_val:,.0f}/mgg" if med_val > 0 else None,
+                    delta_color="off"
+                )
+
+        # 2. Main Visual Grid: Dominant PCA (2.2) + Proportional Donut Chart (1)
+        col_pca, col_dist = st.columns([2.2, 1])
         with col_pca:
             fig_pca = plot_pca_2d_interactive(
                 df_scaled, 
@@ -383,11 +403,21 @@ with tab_clustering:
                 df_raw_features=df_features
             )
             st.plotly_chart(fig_pca, use_container_width=True, key="pca_scatter_chart")
+        with col_dist:
+            fig_donut = plot_cluster_donut_interactive(df_result, cluster_col="Nama_Klaster")
+            st.plotly_chart(fig_donut, use_container_width=True, key="cluster_donut_chart")
+            
+            with st.container(border=True):
+                st.markdown("**💡 Interpretasi Klaster & PCA:**")
+                st.caption(
+                    "Dimensi PC1 dan PC2 mereduksi 24 fitur konsumsi menjadi koordinat 2D (varians gabungan ~59%). "
+                    "Klaster terpisah dengan batas wajar tanpa keberadaan singleton atau klaster outlier ekstrem."
+                )
 
         st.markdown("---")
         st.markdown("##### 🏛️ Rincian Kabupaten / Kota Anggota di Setiap Klaster")
         cols_members = st.columns(min(n_clusters, 4))
-        for idx, cl_name in enumerate(sorted(df_result["Nama_Klaster"].unique())):
+        for idx, cl_name in enumerate(sorted_clusters):
             members = df_result[df_result["Nama_Klaster"] == cl_name]["Kabupaten/Kota"].tolist()
             with cols_members[idx % len(cols_members)]:
                 with st.expander(f"📍 {cl_name} ({len(members)} Wilayah)", expanded=True):
@@ -416,28 +446,53 @@ with tab_business:
     ])
     
     with biz_sub1:
-        st.subheader("📋 Rekomendasi Bisnis & Aksi Kebijakan per Segmen")
-        recs_data = get_business_recommendations()
+        st.subheader("📋 Rekomendasi Strategis Berbasis Klaster")
+        st.markdown("Pilih segmen klaster di bawah ini untuk menelaah profil konsumen dan strategi aksi yang proporsional:")
         
-        for cluster_id in sorted(df_result["Nama_Klaster"].unique()):
-            members_list = df_result[df_result["Nama_Klaster"] == cluster_id]["Kabupaten/Kota"].tolist()
-            # Find matching recommendation key
-            rec_entry = None
-            for key, val in recs_data.items():
-                if key in cluster_id or cluster_id in key:
-                    rec_entry = val
-                    break
-                    
-            with st.container(border=True):
-                st.subheader(cluster_id)
-                st.markdown(f"**🏛️ Wilayah Anggota ({len(members_list)} Kab/Kota):** {', '.join(members_list)}")
-                st.markdown(f"**Karakteristik Wilayah (Who):** {rec_entry['who'] if rec_entry else 'Wilayah pada klaster ini memiliki karakteristik pola pengeluaran serupa.'}")
-                st.markdown(f"**Pola Pengeluaran Utama (What):** {rec_entry['what'] if rec_entry else 'Dominasi belanja pada kategori makanan pokok siap konsumsi.'}")
-                st.markdown(f"**Implikasi Bisnis (So What):** {rec_entry['so_what'] if rec_entry else 'Peluang penetrasi produk sesuai daya beli segmen.'}")
+        recs_data = get_business_recommendations()
+        cluster_list = sorted(df_result["Nama_Klaster"].unique())
+        
+        # Tabs for each cluster + overview matrix tab
+        cluster_tab_names = [f"{cl.split('(')[0].strip()}" for cl in cluster_list] + ["📊 Matriks Komparatif (Overview)"]
+        sub_recs_tabs = st.tabs(cluster_tab_names)
+        
+        for idx, cluster_id in enumerate(cluster_list):
+            with sub_recs_tabs[idx]:
+                members_list = sorted(df_result[df_result["Nama_Klaster"] == cluster_id]["Kabupaten/Kota"].tolist())
+                spending_subset = df_result[df_result["Nama_Klaster"] == cluster_id]["Total_Pengeluaran"] if "Total_Pengeluaran" in df_result.columns else pd.Series([0])
+                med_val = spending_subset.median()
                 
+                # Find matching recommendation key
+                rec_entry = None
+                for key, val in recs_data.items():
+                    if key in cluster_id or cluster_id in key:
+                        rec_entry = val
+                        break
+                
+                # Row 1: Balanced Header Information (Two proportional cards)
+                c_info1, c_info2 = st.columns([1.15, 1])
+                with c_info1:
+                    with st.container(border=True):
+                        st.markdown(f"#### {cluster_id}")
+                        st.markdown(f"**👤 Profil Sasaran (Who):**\n{rec_entry['who'] if rec_entry else '-'}")
+                        st.markdown(f"**🍜 Pola Konsumsi (What):**\n{rec_entry['what'] if rec_entry else '-'}")
+                        st.markdown(f"**💼 Implikasi Pasar (So What):**\n{rec_entry['so_what'] if rec_entry else '-'}")
+                
+                with c_info2:
+                    with st.container(border=True):
+                        st.markdown(f"#### 🏛️ Wilayah Anggota ({len(members_list)} Kab/Kota)")
+                        st.caption(f"Median Total Pengeluaran F&B: **Rp {med_val:,.0f} / kapita / minggu**")
+                        
+                        # Render members as neat tags/badges
+                        badge_html = " ".join([
+                            f"<span style='display:inline-block; background:rgba(128,128,128,0.15); border-radius:6px; padding:3px 8px; margin:2px 3px; font-size:0.85rem;'>📍 {m}</span>"
+                            for m in members_list
+                        ])
+                        st.markdown(badge_html, unsafe_allow_html=True)
+                
+                # Row 2: 3 Proportional Action Cards (Now What)
                 if rec_entry and "now_what" in rec_entry:
-                    st.divider()
-                    st.markdown("##### 🎯 Rekomendasi Aksi Konkret (Now What):")
+                    st.markdown("##### 🎯 Rekomendasi Aksi Konkret (Now What)")
                     c_fmcg, c_food, c_gov = st.columns(3)
                     with c_fmcg:
                         with st.container(border=True):
@@ -451,6 +506,30 @@ with tab_business:
                         with st.container(border=True):
                             st.markdown("##### 🏛️ Kebijakan Pemprov / Dinkes")
                             st.markdown(rec_entry['now_what']['pemprov'])
+
+        # Final Tab: Matriks Komparatif Cross-Cluster
+        with sub_recs_tabs[-1]:
+            st.markdown("#### 📊 Matriks Strategis Lintas Segmen")
+            st.markdown("Perbandingan komprehensif arah strategi bisnis dan kebijakan publik antar klaster:")
+            
+            matrix_data = []
+            for cl_name in cluster_list:
+                rec = None
+                for k, v in recs_data.items():
+                    if k in cl_name or cl_name in k:
+                        rec = v
+                        break
+                cnt = (df_result["Nama_Klaster"] == cl_name).sum()
+                med = df_result[df_result["Nama_Klaster"] == cl_name]["Total_Pengeluaran"].median() if "Total_Pengeluaran" in df_result.columns else 0
+                matrix_data.append({
+                    "Segmen Klaster": cl_name,
+                    "Jumlah Wilayah": f"{cnt} Kab/Kota",
+                    "Median Belanja": f"Rp {med:,.0f}/mgg",
+                    "Strategi FMCG / Retail": rec['now_what']['fmcg'] if rec else "-",
+                    "Strategi Foodservice": rec['now_what']['food_delivery'] if rec else "-",
+                    "Fokus Kebijakan Pemda": rec['now_what']['pemprov'] if rec else "-"
+                })
+            st.dataframe(pd.DataFrame(matrix_data), use_container_width=True, hide_index=True)
 
     with biz_sub2:
         st.subheader("📊 Analisis Kesenjangan Konsumsi Antar Wilayah (Disparity Gap)")

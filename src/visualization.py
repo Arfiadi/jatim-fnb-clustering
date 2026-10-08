@@ -218,7 +218,22 @@ def plot_linkage_comparison_interactive(
     fig.update_layout(
         template="plotly_white",
         hovermode="x unified",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        title=dict(
+            text="Perbandingan Silhouette Score Antar Metode Linkage (K = 2 s/d 10)",
+            x=0.01,
+            y=0.98,
+            xanchor="left",
+            yanchor="top"
+        ),
+        legend=dict(
+            orientation="v", 
+            yanchor="top", 
+            y=0.98, 
+            xanchor="left", 
+            x=1.02,
+            title_text="Metode"
+        ),
+        margin=dict(t=50, b=40, l=40, r=20)
     )
     return fig
 
@@ -230,7 +245,7 @@ def plot_pca_2d_interactive(
     cluster_names_map: Dict[int, str],
     df_raw_features: Optional[pd.DataFrame] = None
 ) -> go.Figure:
-    """Interactive PCA 2D scatter plot with rich hover tooltips."""
+    """Interactive PCA 2D scatter plot with rich hover tooltips and clean right-aligned legend."""
     pca = PCA(n_components=2)
     pca_coords = pca.fit_transform(df_scaled)
     var_exp = pca.explained_variance_ratio_
@@ -275,8 +290,58 @@ def plot_pca_2d_interactive(
     )
     fig.update_traces(marker=dict(size=12, line=dict(width=1, color="DarkSlateGrey")))
     fig.update_layout(
-        legend=dict(orientation="h", yanchor="top", y=-0.15, xanchor="center", x=0.5),
-        margin=dict(t=50, b=120)
+        title=dict(
+            text=f"Visualisasi 2D Klastering via PCA ({var_exp.sum()*100:.1f}% Varians)",
+            x=0.01,
+            y=0.98,
+            xanchor="left",
+            yanchor="top"
+        ),
+        legend=dict(
+            orientation="v", 
+            yanchor="top", 
+            y=0.98, 
+            xanchor="left", 
+            x=1.02,
+            title_text=""
+        ),
+        margin=dict(t=50, b=40, l=40, r=20),
+        height=520
+    )
+    return fig
+
+
+def plot_cluster_donut_interactive(
+    df: pd.DataFrame, 
+    cluster_col: str = "Nama_Klaster"
+) -> go.Figure:
+    """Interactive compact donut chart displaying member distribution proportion per cluster."""
+    counts = df[cluster_col].value_counts().reset_index()
+    counts.columns = ["Segmen Klaster", "Jumlah Wilayah"]
+    
+    fig = px.pie(
+        counts,
+        names="Segmen Klaster",
+        values="Jumlah Wilayah",
+        hole=0.48,
+        template="plotly_white"
+    )
+    fig.update_traces(
+        textposition="inside", 
+        textinfo="percent+label",
+        hoverinfo="label+value+percent"
+    )
+    fig.update_layout(
+        showlegend=False,
+        title=dict(
+            text="Proporsi Wilayah per Klaster",
+            x=0.05,
+            y=0.98,
+            xanchor="left",
+            yanchor="top"
+        ),
+        margin=dict(t=40, b=20, l=20, r=20),
+        height=320
     )
     return fig
 
@@ -285,7 +350,7 @@ def plot_cluster_distribution_interactive(
     df: pd.DataFrame, 
     cluster_col: str = "Nama_Klaster"
 ) -> go.Figure:
-    """Interactive horizontal bar chart displaying member distribution per cluster."""
+    """Interactive horizontal bar chart displaying member distribution per cluster with slim bars."""
     counts = df[cluster_col].value_counts().reset_index()
     counts.columns = ["Segmen Klaster", "Jumlah Wilayah"]
     counts["Persentase (%)"] = (counts["Jumlah Wilayah"] / len(df) * 100).round(1)
@@ -299,15 +364,16 @@ def plot_cluster_distribution_interactive(
         orientation="h",
         text="Jumlah Wilayah",
         hover_data={"Persentase (%)": True},
-        title="Distribusi Jumlah Wilayah per Klaster",
+        title="Distribusi Wilayah per Klaster",
         template="plotly_white"
     )
-    fig.update_traces(textposition="outside")
+    fig.update_traces(textposition="outside", width=0.45)
     fig.update_layout(
         showlegend=False, 
         xaxis_title="Jumlah Kabupaten/Kota", 
         yaxis_title="",
-        margin=dict(l=10, r=40, t=50, b=30)
+        margin=dict(l=10, r=40, t=40, b=30),
+        height=260
     )
     return fig
 
@@ -364,15 +430,23 @@ def plot_top_features_interactive(
         template="plotly_white"
     )
     fig.update_layout(
-        xaxis_tickangle=-30,
-        legend=dict(
-            orientation="h", 
-            yanchor="bottom", 
-            y=1.04, 
-            xanchor="center", 
-            x=0.5
+        title=dict(
+            text=f"Top {top_n} Komoditas Pengeluaran Tertinggi per Klaster",
+            x=0.01,
+            y=0.98,
+            xanchor="left",
+            yanchor="top"
         ),
-        margin=dict(t=85, b=110),
+        legend=dict(
+            orientation="v", 
+            yanchor="top", 
+            y=0.98, 
+            xanchor="left", 
+            x=1.02,
+            title_text=""
+        ),
+        xaxis_tickangle=-30,
+        margin=dict(t=50, b=110, l=50, r=20),
         height=540
     )
     return fig

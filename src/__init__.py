@@ -25,6 +25,7 @@ from .visualization import (
     plot_boxplot_distribution,
     plot_linkage_comparison_interactive,
     plot_pca_2d_interactive,
+    plot_cluster_donut_interactive,
     plot_cluster_distribution_interactive,
     plot_cluster_profile_heatmap_interactive,
     plot_top_features_interactive,
