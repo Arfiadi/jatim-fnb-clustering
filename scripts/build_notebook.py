@@ -185,7 +185,7 @@ def generate_notebook():
             "## 7. Ekspor Data Hasil Segmentasi"
         ),
         nbf.v4.new_code_cell(
-            "output_path = Path('data/processed/hasil_klaster_konsumsi_jatim_2024.csv')\n"
+            "output_path = root_path / 'data' / 'processed' / 'hasil_klaster_konsumsi_jatim_2024.csv'\n"
             "output_path.parent.mkdir(parents=True, exist_ok=True)\n"
             "df_result.to_csv(output_path, index=False)\n"
             "print(f'Data hasil segmentasi berhasil diekspor ke: {output_path}')"
